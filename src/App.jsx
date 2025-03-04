@@ -33,11 +33,12 @@ function App() {
 
     const addUser = async () => {
         if (name.trim() && age.trim()) {
+            const userData = { name, age: Number(age) }; // Convertir `age` a número
             if (editingId) {
-                await updateDoc(doc(db, "users", editingId), { name, age: Number(age) });
+                await updateDoc(doc(db, "users", editingId), userData);
                 setEditingId(null);
             } else {
-                await addDoc(collection(db, "users"), { name, age: Number(age) });
+                await addDoc(collection(db, "users"), userData);
             }
             setName("");
             setAge("");
@@ -48,6 +49,12 @@ function App() {
     const deleteUser = async (id) => {
         await deleteDoc(doc(db, "users", id));
         fetchUsers();
+    };
+
+    const editUser = (user) => {
+        setName(user.name);
+        setAge(user.age.toString()); // Asegurar que el input de número no tenga problemas
+        setEditingId(user.id);
     };
 
     useEffect(() => {
@@ -85,18 +92,14 @@ function App() {
             />
             
             {/* Botón para agregar o actualizar datos */}
-            {editingId ? (
-                <button onClick={addUser}>Actualizar</button>
-            ) : (
-                <button onClick={addUser}>Agregar</button>
-            )}
+            <button onClick={addUser}>{editingId ? "Actualizar" : "Agregar"}</button>
             
             {/* Lista de usuarios con botones de edición y eliminación */}
             <ul>
                 {users.map((user) => (
                     <li key={user.id}>
                         {user.name} - {user.age} años
-                        <button onClick={() => { setName(user.name); setAge(user.age); setEditingId(user.id); }}>✏️</button>
+                        <button onClick={() => editUser(user)}>✏️</button>
                         <button onClick={() => deleteUser(user.id)}>🗑️</button>
                     </li>
                 ))}
